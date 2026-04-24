@@ -11,28 +11,14 @@
         
         :root {
             --primary: #0084ff;
-            --primary-hover: #0073e6;
             --bg-light: #f0f2f5;
         }
 
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: var(--bg-light); 
-            margin: 0; 
-            padding: 0; 
+            margin: 0; padding: 0; 
             overscroll-behavior: contain;
-        }
-
-        .chat-container { height: calc(100vh - 140px); }
-        
-        .admin-badge { 
-            background: linear-gradient(90deg, #ff8a00, #e52e71); 
-            color: white; 
-            padding: 2px 8px; 
-            border-radius: 6px; 
-            font-size: 10px; 
-            font-weight: 800; 
-            letter-spacing: 0.5px;
         }
 
         .message-me { 
@@ -40,7 +26,6 @@
             color: white; 
             align-self: flex-end; 
             border-radius: 18px 18px 4px 18px; 
-            box-shadow: 0 2px 4px rgba(0,132,255,0.2);
         }
 
         .message-them { 
@@ -48,7 +33,6 @@
             color: #1c1e21; 
             align-self: flex-start; 
             border-radius: 18px 18px 18px 4px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             border: 1px solid #e4e6eb;
         }
 
@@ -58,160 +42,148 @@
             border-bottom: 1px solid rgba(0,0,0,0.1); 
         }
 
-        #call-overlay { 
-            z-index: 100; 
-            background: radial-gradient(circle at center, #1a1a1a, #000000); 
+        .emoji-picker {
+            display: none;
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            z-index: 50;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .typing-dot {
-            width: 4px;
-            height: 4px;
-            background: #94a3b8;
-            border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
+        #call-overlay { z-index: 100; background: #000; }
+        
+        .incoming-call-anim {
+            animation: pulse-red 1.5s infinite;
         }
 
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
-
-        /* Scrollbar Personalizada */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-gray-100">
 
     <div id="app" class="max-w-lg mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col border-x border-gray-200">
         
+        <!-- SOM DE NOTIFICAÇÃO (Simulado) -->
+        <audio id="ringtone-audio" loop>
+            <source src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" type="audio/mpeg">
+        </audio>
+
         <!-- LOGIN SCREEN -->
         <div id="auth-screen" class="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8">
-            <div class="w-full max-w-sm">
-                <div class="text-center mb-10">
-                    <div class="bg-blue-600 w-24 h-24 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl rotate-3">
-                        <i class="fa-solid fa-bolt text-5xl text-white"></i>
-                    </div>
-                    <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Instamigos</h1>
-                    <p class="text-gray-500 mt-2">O seu espaço privado de conversa</p>
+            <div class="w-full max-w-sm text-center">
+                <div class="bg-blue-600 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fa-solid fa-bolt text-4xl text-white"></i>
                 </div>
-                
-                <div class="space-y-5">
-                    <div class="relative group">
-                        <i class="fa-solid fa-at absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                        <input type="text" id="auth-user" placeholder="Como te chamas?" class="w-full border-2 border-gray-100 rounded-2xl p-4 pl-12 text-lg focus:ring-4 focus:ring-blue-50 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400" autocomplete="off">
-                    </div>
-                    
-                    <button onclick="handleAuth()" id="auth-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center text-lg shadow-lg active:scale-[0.98]">
-                        <span id="btn-text">Entrar Agora</span>
-                        <i class="fa-solid fa-arrow-right ml-2 text-sm"></i>
-                    </button>
-                </div>
-                
-                <div class="mt-12 flex items-center justify-center gap-6 grayscale opacity-40">
-                    <i class="fa-solid fa-shield-halved text-xl"></i>
-                    <i class="fa-solid fa-lock text-xl"></i>
-                    <i class="fa-solid fa-user-secret text-xl"></i>
-                </div>
+                <h1 class="text-3xl font-black mb-6">Instamigos</h1>
+                <input type="text" id="auth-user" placeholder="Seu Nome" class="w-full border-2 border-gray-100 rounded-2xl p-4 mb-4 outline-none focus:border-blue-500">
+                <button onclick="handleAuth()" id="auth-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Entrar Agora</button>
             </div>
         </div>
 
-        <!-- MAIN CHAT INTERFACE -->
-        <div id="chat-interface" class="hidden flex flex-col h-screen overflow-hidden">
-            <!-- Header -->
-            <header class="glass-nav px-4 py-4 flex items-center justify-between z-10 sticky top-0">
-                <div class="flex items-center">
-                    <div class="relative mr-3">
-                        <div class="w-11 h-11 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-full flex items-center justify-center text-white shadow-md">
-                            <i class="fa-solid fa-bolt-lightning text-xl"></i>
-                        </div>
-                        <div class="w-3.5 h-3.5 bg-green-500 rounded-full absolute bottom-0 right-0 border-2 border-white shadow-sm"></div>
-                    </div>
+        <!-- PERFIL MODAL -->
+        <div id="profile-modal" class="hidden fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm">
+            <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl">
+                <h3 class="text-xl font-bold mb-4">Seu Perfil</h3>
+                <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cor da Mensagem</label>
+                <input type="color" id="profile-color" class="w-full h-10 mb-4 rounded-lg cursor-pointer">
+                <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Bio</label>
+                <textarea id="profile-bio" placeholder="Fale sobre você..." class="w-full border p-2 rounded-xl text-sm mb-4"></textarea>
+                <button onclick="saveProfile()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Salvar Alterações</button>
+                <button onclick="closeProfile()" class="w-full mt-2 text-gray-500 text-sm">Cancelar</button>
+            </div>
+        </div>
+
+        <!-- MAIN CHAT -->
+        <div id="chat-interface" class="hidden flex flex-col h-screen">
+            <header class="glass-nav px-4 py-3 flex items-center justify-between z-10">
+                <div class="flex items-center cursor-pointer" onclick="openProfile()">
+                    <div id="user-avatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">?</div>
                     <div>
-                        <h2 class="font-bold text-gray-900 leading-tight">Instamigos Chat</h2>
-                        <div id="admin-indicator" class="hidden admin-badge">MODERADOR</div>
-                        <span id="user-display-name" class="text-xs text-gray-500 block font-medium">Online</span>
+                        <h2 id="user-display-name" class="font-bold text-sm">Carregando...</h2>
+                        <span class="text-[10px] text-green-500 font-bold uppercase">Online</span>
                     </div>
                 </div>
-                <div class="flex space-x-1">
-                    <button onclick="toggleAdminPanel()" id="admin-btn" class="hidden w-10 h-10 flex items-center justify-center text-orange-500 hover:bg-orange-50 rounded-xl transition">
-                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                <div class="flex gap-2">
+                    <button onclick="startGroupCall()" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 rounded-full">
+                        <i class="fa-solid fa-phone"></i>
                     </button>
-                    <button onclick="openCall()" class="w-10 h-10 flex items-center justify-center text-blue-600 hover:bg-blue-50 rounded-xl transition">
-                        <i class="fa-solid fa-video text-lg"></i>
-                    </button>
-                    <button onclick="logout()" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition">
-                        <i class="fa-solid fa-power-off"></i>
+                    <button onclick="toggleAdminPanel()" id="admin-btn" class="hidden w-10 h-10 flex items-center justify-center text-orange-500 bg-orange-50 rounded-full">
+                        <i class="fa-solid fa-crown"></i>
                     </button>
                 </div>
             </header>
 
-            <!-- Admin Panel -->
-            <div id="admin-panel" class="hidden bg-gray-900 text-white p-5 absolute top-[76px] left-0 right-0 z-20 border-b-2 border-orange-500 shadow-2xl animate-in slide-in-from-top duration-300">
-                <div class="flex items-center gap-2 mb-4 text-orange-400">
-                    <i class="fa-solid fa-crown"></i>
-                    <h3 class="font-black text-sm uppercase tracking-widest">Painel de Controlo YOHAN</h3>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="adminAction('clear')" class="bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/50 p-3 rounded-xl text-xs font-bold transition-all">
-                        <i class="fa-solid fa-trash-can mr-2"></i>Limpar Tudo
-                    </button>
-                    <button onclick="adminAction('alert')" class="bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white border border-blue-500/50 p-3 rounded-xl text-xs font-bold transition-all">
-                        <i class="fa-solid fa-bullhorn mr-2"></i>Aviso Global
-                    </button>
-                </div>
+            <div id="admin-panel" class="hidden bg-gray-900 text-white p-4">
+                <button onclick="adminAction('clear')" class="text-xs bg-red-600 px-3 py-1 rounded">Limpar Chat</button>
             </div>
 
-            <!-- Messages Area -->
-            <div id="messages-display" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 bg-[#f8fafc]">
-                <!-- Mensagens aparecerão aqui -->
+            <div id="messages-display" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-3 bg-gray-50"></div>
+
+            <!-- EMOJI PICKER -->
+            <div id="emoji-picker" class="emoji-picker grid">
+                <button onclick="addEmoji('😂')">😂</button>
+                <button onclick="addEmoji('😍')">😍</button>
+                <button onclick="addEmoji('🔥')">🔥</button>
+                <button onclick="addEmoji('🙌')">🙌</button>
+                <button onclick="addEmoji('❤️')">❤️</button>
+                <button onclick="addEmoji('👍')">👍</button>
+                <button onclick="addEmoji('😢')">😢</button>
+                <button onclick="addEmoji('😎')">😎</button>
+                <button onclick="addEmoji('🤔')">🤔</button>
+                <button onclick="addEmoji('🚀')">🚀</button>
             </div>
 
-            <!-- Input Area -->
-            <div class="p-4 bg-white border-t border-gray-100 flex items-center gap-2">
-                <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-500 transition">
-                    <i class="fa-regular fa-image text-xl"></i>
-                </button>
-                <div class="flex-1 relative">
-                    <input type="text" id="msg-input" placeholder="Mensagem..." class="w-full bg-gray-100 rounded-2xl px-5 py-3.5 outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all border border-transparent focus:border-blue-200 text-[16px]">
-                </div>
-                <button onclick="send()" class="w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-700 active:scale-90 transition-all">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+            <div class="p-3 bg-white border-t flex items-center gap-2">
+                <button onclick="toggleEmojis()" class="text-gray-400 text-xl px-2"><i class="fa-regular fa-face-smile"></i></button>
+                <button onclick="promptImage()" class="text-gray-400 text-xl px-2"><i class="fa-regular fa-image"></i></button>
+                <input type="text" id="msg-input" placeholder="Mensagem..." class="flex-1 bg-gray-100 rounded-full px-4 py-2 outline-none">
+                <button onclick="send()" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane text-sm"></i></button>
             </div>
         </div>
 
-        <!-- CALL OVERLAY -->
-        <div id="call-overlay" class="hidden fixed inset-0 flex flex-col items-center justify-between py-24 text-white">
+        <!-- CALL RECEIVING MODAL -->
+        <div id="incoming-call-modal" class="hidden fixed inset-0 z-[70] bg-blue-900/90 flex flex-col items-center justify-center text-white">
+            <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 incoming-call-anim">
+                <i class="fa-solid fa-phone-volume text-4xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Chamada em Grupo</h2>
+            <p class="mb-10 text-blue-200">Todos estão entrando...</p>
+            <div class="flex gap-8">
+                <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-xl"><i class="fa-solid fa-phone-slash"></i></button>
+                <button onclick="acceptCall()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-2xl shadow-xl"><i class="fa-solid fa-check"></i></button>
+            </div>
+        </div>
+
+        <!-- CALL ACTIVE OVERLAY -->
+        <div id="call-overlay" class="hidden fixed inset-0 flex flex-col items-center justify-around py-20 text-white">
             <div class="text-center">
-                <div class="w-32 h-32 bg-gray-800 rounded-full mx-auto mb-8 flex items-center justify-center border-4 border-blue-600 shadow-[0_0_50px_rgba(37,99,235,0.3)]">
-                    <i class="fa-solid fa-users text-5xl text-blue-500"></i>
+                <div class="w-32 h-32 bg-gray-800 rounded-full mx-auto mb-4 border-4 border-blue-500 flex items-center justify-center overflow-hidden">
+                    <i class="fa-solid fa-headset text-5xl text-blue-400"></i>
                 </div>
-                <h2 class="text-4xl font-black mb-2 italic">LIVE CHAT</h2>
-                <p id="call-timer" class="text-blue-400 font-mono text-2xl tracking-tighter">00:00</p>
-                <div class="flex gap-1 justify-center mt-4">
-                    <div class="typing-dot" style="animation-delay: 0s"></div>
-                    <div class="typing-dot" style="animation-delay: 0.2s"></div>
-                    <div class="typing-dot" style="animation-delay: 0.4s"></div>
-                </div>
+                <h3 class="text-xl font-bold uppercase tracking-widest">Em Chamada</h3>
+                <p id="call-timer" class="text-blue-400 font-mono">00:00</p>
             </div>
-            <div class="flex items-center space-x-8">
-                <button class="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition backdrop-blur-md"><i class="fa-solid fa-microphone-slash"></i></button>
-                <button onclick="closeCall()" class="w-24 h-24 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-4xl transition shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-phone-slash"></i></button>
-                <button class="w-16 h-16 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition backdrop-blur-md"><i class="fa-solid fa-video"></i></button>
-            </div>
+            <button onclick="endCall()" class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-3xl shadow-2xl border-4 border-white/10"><i class="fa-solid fa-phone-slash"></i></button>
         </div>
 
     </div>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // SUA CONFIGURAÇÃO REAL DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg",
             authDomain: "instamigos.firebaseapp.com",
@@ -225,199 +197,193 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        
-        // Caminho único para as mensagens (seguindo a regra de storage do ambiente)
-        const appId = 'instamigos-prod';
+        const appId = 'instamigos-v2';
 
         let userSession = null;
-        let unsubscribeMessages = null;
-        let callInterval = null;
+        let callTimerInterval = null;
+        const ringtone = document.getElementById('ringtone-audio');
 
-        const setBtnLoading = (isLoading) => {
-            const btn = document.getElementById('auth-btn');
-            const btnText = document.getElementById('btn-text');
-            if (isLoading) {
-                btn.disabled = true;
-                btnText.innerText = "A ligar...";
-                btn.classList.add('opacity-50');
-            } else {
-                btn.disabled = false;
-                btnText.innerText = "Entrar no Chat";
-                btn.classList.remove('opacity-50');
-            }
-        };
-
-        const initAuth = async () => {
-            try {
-                // Login anônimo para permitir escrita no Firestore sem senha
-                await signInAnonymously(auth);
-            } catch (e) {
-                console.error("Erro Firebase Auth:", e);
-                alert("Falha na ligação segura. Verifique as regras do Firestore.");
-                setBtnLoading(false);
-            }
-        };
-
+        // --- AUTH ---
         window.handleAuth = async () => {
-            const userInput = document.getElementById('auth-user');
-            const user = userInput.value.trim();
-
-            if(!user) return alert("Insira o seu nome!");
-            if(user.length < 2) return alert("Nome muito curto!");
-
-            setBtnLoading(true);
-            userSession = { name: user, isAdmin: user.toUpperCase() === 'YOHAN' };
-            localStorage.setItem('chat_user', JSON.stringify(userSession));
+            const name = document.getElementById('auth-user').value.trim();
+            if(!name) return;
             
-            if (!auth.currentUser) {
-                await initAuth();
-            } else {
-                initApp();
-            }
+            userSession = { 
+                name, 
+                isAdmin: name.toUpperCase() === 'YOHAN',
+                color: '#0084ff',
+                bio: ''
+            };
+            localStorage.setItem('instamigos_user', JSON.stringify(userSession));
+            await signInAnonymously(auth);
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user && userSession) {
-                initApp();
+            if(user && userSession) {
+                document.getElementById('auth-screen').classList.add('hidden');
+                document.getElementById('chat-interface').classList.remove('hidden');
+                document.getElementById('user-display-name').innerText = userSession.name;
+                document.getElementById('user-avatar').innerText = userSession.name[0].toUpperCase();
+                if(userSession.isAdmin) document.getElementById('admin-btn').classList.remove('hidden');
+                
+                listenMessages();
+                listenCalls();
             }
         });
 
-        const initApp = () => {
-            if(!userSession) return;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('chat-interface').classList.remove('hidden');
-            document.getElementById('user-display-name').innerText = `@${userSession.name}`;
-
-            if(userSession.isAdmin) {
-                document.getElementById('admin-indicator').classList.remove('hidden');
-                document.getElementById('admin-btn').classList.remove('hidden');
-            }
-
-            loadMessages();
-        };
-
-        const loadMessages = () => {
-            if (!auth.currentUser) return;
-            if (unsubscribeMessages) unsubscribeMessages();
-
-            // Referência para a coleção seguindo a estrutura recomendada
-            const q = query(
-                collection(db, 'artifacts', appId, 'public', 'data', 'messages'),
-                orderBy('createdAt', 'asc')
-            );
-
-            unsubscribeMessages = onSnapshot(q, (snapshot) => {
+        // --- MENSAGENS ---
+        const listenMessages = () => {
+            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), orderBy('createdAt', 'asc'));
+            onSnapshot(q, (snap) => {
                 const display = document.getElementById('messages-display');
                 display.innerHTML = "";
-                
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (!data.user) return;
+                snap.forEach(d => {
+                    const m = d.data();
+                    const isMe = m.user === userSession.name;
+                    
+                    const wrap = document.createElement('div');
+                    wrap.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `max-w-[80%] p-3 shadow-sm ${isMe ? 'message-me' : 'message-them'}`;
+                    if(isMe && m.userColor) msgDiv.style.backgroundColor = m.userColor;
 
-                    const isMe = data.user === userSession.name;
-                    const isAdminMsg = data.isAdmin === true;
+                    let content = `<span class="block text-[9px] font-bold opacity-70 uppercase mb-1">${m.user}</span>`;
                     
-                    const container = document.createElement('div');
-                    container.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    if(m.type === 'image') {
+                        content += `<img src="${m.text}" class="rounded-lg max-w-full h-auto cursor-pointer" onclick="window.open('${m.text}')">`;
+                    } else {
+                        content += `<p class="text-sm">${m.text}</p>`;
+                    }
 
-                    const div = document.createElement('div');
-                    div.className = `max-w-[85%] p-3.5 mb-0.5 shadow-sm transition-all animate-in fade-in slide-in-from-bottom-1 ${isMe ? 'message-me' : 'message-them'}`;
-                    
-                    const role = isAdminMsg ? '<i class="fa-solid fa-crown text-[8px] mr-1"></i>' : '';
-                    const meta = `<span class="text-[10px] font-bold opacity-60 mb-0.5 block uppercase tracking-wider">${role}${data.user}</span>`;
-                    div.innerHTML = `${meta}<div class="text-[15px] leading-snug font-medium">${data.text}</div>`;
-                    
-                    container.appendChild(div);
-                    display.appendChild(container);
+                    msgDiv.innerHTML = content;
+                    wrap.appendChild(msgDiv);
+                    display.appendChild(wrap);
                 });
                 display.scrollTop = display.scrollHeight;
-            }, (err) => {
-                console.error("Erro Live Chat:", err);
             });
         };
 
-        window.send = async () => {
+        window.send = async (textOverride = null, type = 'text') => {
             const input = document.getElementById('msg-input');
-            const text = input.value.trim();
-            if(!text || !auth.currentUser) return;
+            const text = textOverride || input.value.trim();
+            if(!text) return;
 
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                    text: text,
-                    user: userSession.name,
-                    isAdmin: !!userSession.isAdmin,
-                    createdAt: serverTimestamp()
-                });
-                input.value = "";
-                input.focus();
-            } catch (e) {
-                console.error("Falha ao enviar:", e);
-            }
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                text,
+                type,
+                user: userSession.name,
+                userColor: userSession.color,
+                createdAt: serverTimestamp()
+            });
+            input.value = "";
         };
 
-        window.toggleAdminPanel = () => {
-            const p = document.getElementById('admin-panel');
-            p.classList.toggle('hidden');
-        };
+        // --- CHAMADAS ---
+        const listenCalls = () => {
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), (docSnap) => {
+                const data = docSnap.data();
+                if(!data) return;
 
-        window.adminAction = async (action) => {
-            if (!auth.currentUser || !userSession.isAdmin) return;
-
-            if(action === 'clear') {
-                if(confirm("COMANDO MESTRE: Apagar todas as conversas do servidor?")) {
-                    const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
-                    for (const d of snap.docs) {
-                        await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', d.id));
-                    }
-                    toggleAdminPanel();
+                if(data.active && data.startedBy !== userSession.name) {
+                    document.getElementById('incoming-call-modal').classList.remove('hidden');
+                    ringtone.play().catch(() => console.log("Interação necessária para som"));
+                } else if (!data.active) {
+                    hideCallUI();
                 }
-            } else if (action === 'alert') {
-                const msg = prompt("Mensagem Urgente de Admin:");
-                if(msg) {
-                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                        text: `⚠️ SISTEMA: ${msg}`,
-                        user: "CONTROLO",
-                        isAdmin: true,
-                        createdAt: serverTimestamp()
-                    });
-                }
-            } else {
-                toggleAdminPanel();
-            }
+            });
         };
 
-        window.openCall = () => {
+        window.startGroupCall = async () => {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), {
+                active: true,
+                startedBy: userSession.name,
+                timestamp: serverTimestamp()
+            });
+            acceptCall();
+        };
+
+        window.acceptCall = () => {
+            ringtone.pause();
+            document.getElementById('incoming-call-modal').classList.add('hidden');
             document.getElementById('call-overlay').classList.remove('hidden');
-            let seconds = 0;
-            callInterval = setInterval(() => {
-                seconds++;
-                const min = Math.floor(seconds / 60).toString().padStart(2, '0');
-                const sec = (seconds % 60).toString().padStart(2, '0');
-                document.getElementById('call-timer').innerText = `${min}:${sec}`;
+            startTimer();
+        };
+
+        window.rejectCall = () => {
+            ringtone.pause();
+            document.getElementById('incoming-call-modal').classList.add('hidden');
+        };
+
+        window.endCall = async () => {
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), { active: false });
+        };
+
+        const hideCallUI = () => {
+            ringtone.pause();
+            document.getElementById('incoming-call-modal').classList.add('hidden');
+            document.getElementById('call-overlay').classList.add('hidden');
+            clearInterval(callTimerInterval);
+        };
+
+        const startTimer = () => {
+            let sec = 0;
+            clearInterval(callTimerInterval);
+            callTimerInterval = setInterval(() => {
+                sec++;
+                const m = Math.floor(sec/60).toString().padStart(2,'0');
+                const s = (sec%60).toString().padStart(2,'0');
+                document.getElementById('call-timer').innerText = `${m}:${s}`;
             }, 1000);
         };
 
-        window.closeCall = () => {
-            document.getElementById('call-overlay').classList.add('hidden');
-            clearInterval(callInterval);
-            document.getElementById('call-timer').innerText = "00:00";
+        // --- UTILS ---
+        window.toggleEmojis = () => {
+            const p = document.getElementById('emoji-picker');
+            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
         };
 
-        window.logout = () => {
-            if(confirm("Sair da conta atual?")) {
-                localStorage.removeItem('chat_user');
-                auth.signOut().then(() => location.reload());
+        window.addEmoji = (emoji) => {
+            document.getElementById('msg-input').value += emoji;
+            toggleEmojis();
+        };
+
+        window.promptImage = () => {
+            const url = prompt("Cole a URL da imagem ou GIF:");
+            if(url) send(url, 'image');
+        };
+
+        window.openProfile = () => {
+            document.getElementById('profile-modal').classList.remove('hidden');
+            document.getElementById('profile-color').value = userSession.color;
+            document.getElementById('profile-bio').value = userSession.bio;
+        };
+
+        window.closeProfile = () => document.getElementById('profile-modal').classList.add('hidden');
+
+        window.saveProfile = () => {
+            userSession.color = document.getElementById('profile-color').value;
+            userSession.bio = document.getElementById('profile-bio').value;
+            localStorage.setItem('instamigos_user', JSON.stringify(userSession));
+            closeProfile();
+        };
+
+        window.toggleAdminPanel = () => document.getElementById('admin-panel').classList.toggle('hidden');
+
+        window.adminAction = async (act) => {
+            if(act === 'clear' && confirm("Apagar tudo?")) {
+                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
+                snap.forEach(async (d) => await deleteDoc(d.ref));
             }
         };
 
-        document.getElementById('msg-input').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') send();
-        });
+        document.getElementById('msg-input').addEventListener('keypress', e => e.key === 'Enter' && send());
 
-        const saved = localStorage.getItem('chat_user');
+        // Recuperar sessão
+        const saved = localStorage.getItem('instamigos_user');
         if(saved) {
             userSession = JSON.parse(saved);
-            initAuth();
+            signInAnonymously(auth);
         }
     </script>
 </body>
