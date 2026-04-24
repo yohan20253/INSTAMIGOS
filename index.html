@@ -3,234 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Instamigos Pro</title>
+    <title>INSTAMIGOS</title>
+    <!-- Ícone da Aba do Navegador -->
+    <link rel="icon" type="image/png" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/bolt.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        
-        :root {
-            --primary: #0084ff;
-            --bg-light: #f8fafc;
-        }
-
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #0f172a; 
-            margin: 0; padding: 0; 
-            overscroll-behavior: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .message-me { 
-            background: linear-gradient(135deg, var(--primary), #0061ff);
-            color: white; 
-            align-self: flex-end; 
-            border-radius: 20px 20px 4px 20px; 
-            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.2);
-        }
-
-        .message-them { 
-            background: white; 
-            color: #1e293b; 
-            align-self: flex-start; 
-            border-radius: 20px 20px 20px 4px; 
-            border: 1px solid #f1f5f9;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        }
-
-        .glass-header { 
-            background: rgba(255, 255, 255, 0.8); 
-            backdrop-filter: blur(20px); 
-            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .emoji-panel {
-            display: none;
-            position: absolute;
-            bottom: 90px;
-            left: 10px;
-            right: 10px;
-            background: white;
-            border-radius: 24px;
-            padding: 15px;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            z-index: 100;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            border: 1px solid #f1f5f9;
-        }
-
-        .call-active-pulse {
-            animation: ring-glow 1.5s infinite;
-        }
-
-        @keyframes ring-glow {
-            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
-            70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-        }
-
-        .typing-dot {
-            width: 6px; height: 6px; background: #94a3b8; border-radius: 50%;
-            animation: typing 1.4s infinite ease-in-out;
-        }
-        @keyframes typing {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        :root { --primary: #0084ff; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; margin: 0; overscroll-behavior: none; }
+        .message-me { background: linear-gradient(135deg, var(--primary), #0061ff); color: white; align-self: flex-end; border-radius: 20px 20px 4px 20px; }
+        .message-them { background: white; color: #1e293b; align-self: flex-start; border-radius: 20px 20px 20px 4px; border: 1px solid #f1f5f9; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid #e2e8f0; }
+        .call-pulse { animation: ring-glow 1.5s infinite; }
+        @keyframes ring-glow { 0% { box-shadow: 0 0 0 0 rgba(59,130,246,0.5); } 70% { box-shadow: 0 0 0 20px rgba(59,130,246,0); } 100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); } }
+        #chat-feed::-webkit-scrollbar { width: 4px; }
+        #chat-feed::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
     </style>
 </head>
 <body>
-
-    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col overflow-hidden">
-        
-        <!-- ÁUDIOS -->
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen relative flex flex-col overflow-hidden shadow-2xl">
         <audio id="ringtone" loop><source src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3"></audio>
         <audio id="pop-sound"><source src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
-        <!-- TELA DE ENTRADA -->
-        <div id="auth-screen" class="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 transition-all duration-500">
+        <!-- Auth -->
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 transition-opacity duration-500">
             <div class="w-full text-center space-y-6">
-                <div class="relative inline-block">
-                    <div class="w-24 h-24 bg-blue-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl animate-bounce">
-                        <i class="fa-solid fa-comment-nodes text-4xl text-white"></i>
-                    </div>
+                <div class="w-20 h-20 bg-blue-600 rounded-3xl flex items-center justify-center shadow-xl mx-auto animate-bounce">
+                    <i class="fa-solid fa-bolt text-3xl text-white"></i>
                 </div>
-                <div>
-                    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Instamigos <span class="text-blue-600">Pro</span></h1>
-                    <p class="text-slate-500 font-medium">Lugar de amigos, sem limites.</p>
-                </div>
-                <div class="pt-8 space-y-4">
-                    <input type="text" id="auth-name" placeholder="Como te chamas?" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 outline-none focus:border-blue-500 text-center font-bold text-lg transition-all">
-                    <button onclick="doAuth()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all text-lg flex items-center justify-center gap-2">
-                        Entrar no Grupo <i class="fa-solid fa-chevron-right text-sm"></i>
-                    </button>
-                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight uppercase">INSTAMIGOS</h1>
+                <input type="text" id="auth-name" placeholder="Teu nome..." class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-center font-bold outline-none focus:border-blue-500">
+                <button onclick="doAuth()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition-all">Entrar</button>
             </div>
         </div>
 
-        <!-- PERFIL EDITÁVEL -->
-        <div id="profile-modal" class="hidden fixed inset-0 z-[110] bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center">
-            <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-black text-slate-900">Personalizar</h3>
-                    <button onclick="ui('profile-modal', false)" class="text-slate-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div class="space-y-6">
-                    <div>
-                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Escolhe a tua cor</label>
-                        <div class="flex gap-4 justify-between">
-                            <button onclick="setTheme('#0084ff')" class="w-12 h-12 rounded-2xl bg-[#0084ff] shadow-lg shadow-blue-200"></button>
-                            <button onclick="setTheme('#8b5cf6')" class="w-12 h-12 rounded-2xl bg-[#8b5cf6] shadow-lg shadow-purple-200"></button>
-                            <button onclick="setTheme('#ec4899')" class="w-12 h-12 rounded-2xl bg-[#ec4899] shadow-lg shadow-pink-200"></button>
-                            <button onclick="setTheme('#f59e0b')" class="w-12 h-12 rounded-2xl bg-[#f59e0b] shadow-lg shadow-orange-200"></button>
-                            <input type="color" onchange="setTheme(this.value)" class="w-12 h-12 rounded-2xl cursor-pointer bg-slate-100 overflow-hidden border-none">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Tua Biografia</label>
-                        <textarea id="bio-input" placeholder="O que estás a pensar?" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 h-28 resize-none font-medium"></textarea>
-                    </div>
-                    <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg active:scale-95 transition shadow-xl">Guardar Perfil</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- INTERFACE PRINCIPAL -->
+        <!-- Chat Main -->
         <div id="main-chat" class="hidden flex flex-col h-screen">
-            <header class="glass-header px-4 py-3 flex items-center justify-between z-50 sticky top-0">
-                <div class="flex items-center gap-3 cursor-pointer" onclick="ui('profile-modal', true)">
-                    <div id="nav-avatar" class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg">?</div>
+            <header class="glass px-4 py-3 flex items-center justify-between sticky top-0 z-50">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="document.getElementById('profile-modal').classList.remove('hidden')">
+                    <div id="nav-avatar" class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black">?</div>
                     <div>
-                        <h2 id="nav-name" class="font-bold text-slate-900 text-sm leading-tight">Carregando...</h2>
-                        <div class="flex items-center gap-1">
-                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Membros Online</span>
-                        </div>
+                        <h2 id="nav-name" class="font-bold text-slate-900 text-sm">...</h2>
+                        <span class="text-[10px] text-green-500 font-bold uppercase">Online</span>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="callAction('start')" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 active:scale-90 transition">
-                        <i class="fa-solid fa-phone"></i>
-                    </button>
-                    <button onclick="ui('admin-panel', 'toggle')" id="admin-trigger" class="hidden w-10 h-10 flex items-center justify-center text-amber-500 bg-amber-50 rounded-xl">
-                        <i class="fa-solid fa-crown"></i>
-                    </button>
+                <div class="flex gap-2">
+                    <button onclick="call('start')" class="w-9 h-9 flex items-center justify-center text-blue-600 bg-blue-50 rounded-lg"><i class="fa-solid fa-phone"></i></button>
+                    <button onclick="document.getElementById('admin-panel').classList.toggle('hidden')" id="admin-trigger" class="hidden w-9 h-9 flex items-center justify-center text-amber-500 bg-amber-50 rounded-lg"><i class="fa-solid fa-crown"></i></button>
                 </div>
             </header>
 
-            <!-- PAINEL ADMIN -->
-            <div id="admin-panel" class="hidden bg-slate-900 text-white p-5 animate-in slide-in-from-top border-b border-amber-500/30">
-                <p class="text-[10px] font-black text-amber-500 tracking-widest mb-4">CONTROLO DO MESTRE YOHAN</p>
-                <div class="grid grid-cols-2 gap-3">
-                    <button onclick="adminTool('clear')" class="bg-red-500/20 text-red-400 border border-red-500/30 py-3 rounded-xl font-bold text-xs"><i class="fa-solid fa-eraser mr-2"></i>LIMPAR TUDO</button>
-                    <button onclick="adminTool('announcement')" class="bg-blue-500/20 text-blue-400 border border-blue-500/30 py-3 rounded-xl font-bold text-xs"><i class="fa-solid fa-bullhorn mr-2"></i>ANÚNCIO</button>
+            <div id="admin-panel" class="hidden bg-slate-900 text-white p-4 border-b border-amber-500">
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="admin('clear')" class="bg-red-500/20 text-red-400 py-2 rounded-lg text-xs font-bold">LIMPAR CHAT</button>
+                    <button onclick="admin('alert')" class="bg-blue-500/20 text-blue-400 py-2 rounded-lg text-xs font-bold">AVISO</button>
                 </div>
             </div>
 
-            <!-- CHAT FEED -->
-            <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc]">
-                <!-- Mensagens -->
-            </div>
+            <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50"></div>
 
-            <!-- EMOJIS -->
-            <div id="emoji-box" class="emoji-panel grid">
-                <button onclick="insertEmoji('😂')">😂</button>
-                <button onclick="insertEmoji('🔥')">🔥</button>
-                <button onclick="insertEmoji('😍')">😍</button>
-                <button onclick="insertEmoji('👍')">👍</button>
-                <button onclick="insertEmoji('❤️')">❤️</button>
-                <button onclick="insertEmoji('😎')">😎</button>
-                <button onclick="insertEmoji('🙌')">🙌</button>
-                <button onclick="insertEmoji('✨')">✨</button>
-                <button onclick="insertEmoji('🚀')">🚀</button>
-                <button onclick="insertEmoji('😢')">😢</button>
-                <button onclick="insertEmoji('🤔')">🤔</button>
-                <button onclick="insertEmoji('😜')">😜</button>
+            <div class="p-3 bg-white border-t flex items-center gap-2">
+                <button onclick="attach()" class="text-slate-400 px-2"><i class="fa-regular fa-image text-xl"></i></button>
+                <input type="text" id="msg-input" placeholder="Escreve aqui..." class="flex-1 bg-slate-100 rounded-xl px-4 py-2 outline-none font-medium text-sm">
+                <button onclick="send()" class="bg-blue-600 text-white w-10 h-10 rounded-xl flex items-center justify-center shadow-md"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
+        </div>
 
-            <!-- BARRA DE INPUT -->
-            <div class="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
-                <div class="flex gap-1">
-                    <button onclick="ui('emoji-box', 'toggle')" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-500 transition"><i class="fa-regular fa-face-smile text-xl"></i></button>
-                    <button onclick="attachMedia()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-500 transition"><i class="fa-regular fa-image text-xl"></i></button>
+        <!-- Overlays -->
+        <div id="call-in" class="hidden fixed inset-0 z-[200] bg-blue-600 flex flex-col items-center justify-center text-white p-10 text-center">
+            <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-8 call-pulse"><i class="fa-solid fa-phone-volume text-4xl"></i></div>
+            <h2 class="text-2xl font-bold mb-12">Chamada de Grupo...</h2>
+            <div class="flex gap-8">
+                <button onclick="call('reject')" class="w-16 h-16 bg-red-500 rounded-full text-2xl border-2 border-white/20"><i class="fa-solid fa-xmark"></i></button>
+                <button onclick="call('accept')" class="w-16 h-16 bg-green-500 rounded-full text-2xl border-2 border-white/20"><i class="fa-solid fa-check"></i></button>
+            </div>
+        </div>
+
+        <div id="call-active" class="hidden fixed inset-0 z-[201] bg-slate-950 flex flex-col items-center justify-around py-20 text-white">
+            <div class="text-center space-y-4">
+                <div class="w-32 h-32 bg-slate-900 rounded-[2rem] mx-auto border-2 border-blue-500 flex items-center justify-center call-pulse">
+                    <i class="fa-solid fa-users text-4xl text-blue-400"></i>
                 </div>
-                <input type="text" id="msg-input" placeholder="Diz algo..." class="flex-1 bg-slate-50 rounded-2xl px-5 py-3 outline-none focus:bg-white border-2 border-transparent focus:border-slate-100 transition-all font-medium">
-                <button onclick="sendMsg()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-700 active:scale-90 transition-all">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
+                <p id="timer" class="text-3xl font-mono font-bold text-blue-400">00:00</p>
             </div>
+            <button onclick="call('end')" class="w-20 h-20 bg-red-600 rounded-full text-3xl shadow-2xl"><i class="fa-solid fa-phone-slash"></i></button>
         </div>
 
-        <!-- OVERLAYS DE CHAMADA -->
-        <div id="incoming-overlay" class="hidden fixed inset-0 z-[200] bg-blue-700 flex flex-col items-center justify-center text-white p-10 animate-in fade-in duration-300">
-            <div class="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-10 call-active-pulse">
-                <i class="fa-solid fa-phone-volume text-5xl"></i>
-            </div>
-            <h2 class="text-3xl font-black mb-2 tracking-tight">Chamada Ativa!</h2>
-            <p class="text-blue-100 opacity-80 mb-16 font-medium">Os teus amigos estão à espera...</p>
-            <div class="flex gap-10">
-                <button onclick="callAction('reject')" class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-3xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-phone-slash"></i></button>
-                <button onclick="callAction('accept')" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-3xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-check"></i></button>
-            </div>
-        </div>
-
-        <div id="active-call" class="hidden fixed inset-0 z-[201] bg-slate-950 flex flex-col items-center justify-around py-20 text-white">
-            <div class="text-center space-y-6">
-                <div class="w-44 h-44 bg-slate-900 rounded-[3.5rem] mx-auto border-4 border-blue-500 flex items-center justify-center shadow-[0_0_60px_rgba(59,130,246,0.3)]">
-                    <div class="flex gap-2">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot" style="animation-delay: 0.2s"></div>
-                        <div class="typing-dot" style="animation-delay: 0.4s"></div>
-                    </div>
+        <div id="profile-modal" class="hidden fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm">
+            <div class="bg-white w-full rounded-3xl p-6">
+                <h3 class="font-bold mb-4">Escolhe a tua cor</h3>
+                <div class="flex gap-2 mb-6">
+                    <button onclick="theme('#0084ff')" class="w-10 h-10 rounded-full bg-[#0084ff]"></button>
+                    <button onclick="theme('#8b5cf6')" class="w-10 h-10 rounded-full bg-[#8b5cf6]"></button>
+                    <button onclick="theme('#ec4899')" class="w-10 h-10 rounded-full bg-[#ec4899]"></button>
+                    <button onclick="theme('#10b981')" class="w-10 h-10 rounded-full bg-[#10b981]"></button>
                 </div>
-                <h3 class="text-xl font-black tracking-[0.3em] text-blue-400">AUDIO LIVE</h3>
-                <p id="call-timer" class="text-4xl font-mono font-bold">00:00</p>
+                <button onclick="document.getElementById('profile-modal').classList.add('hidden')" class="w-full bg-slate-900 text-white py-3 rounded-xl font-bold">Fechar</button>
             </div>
-            <button onclick="callAction('end')" class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-4xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-phone-slash"></i></button>
         </div>
-
     </div>
 
     <script type="module">
@@ -238,197 +109,159 @@
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // CONFIG - Garantindo que usamos caminhos seguros
-        const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg","authDomain":"instamigos.firebaseapp.com","projectId":"instamigos","storageBucket":"instamigos.firebasestorage.app","messagingSenderId":"186154054682","appId":"1:186154054682:web:72837e4985cda660ab8da3","measurementId":"G-DEY3GV28EN"}');
-        const app = initializeApp(firebaseConfig);
+        const cfg = {
+            apiKey: "AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg",
+            authDomain: "instamigos.firebaseapp.com",
+            projectId: "instamigos",
+            storageBucket: "instamigos.firebasestorage.app",
+            messagingSenderId: "186154054682",
+            appId: "1:186154054682:web:72837e4985cda660ab8da3"
+        };
+
+        const app = initializeApp(cfg);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'instamigos-v4-final';
+        const app_uid = 'instamigos_v4_prod';
 
-        let session = null;
-        let timer = null;
-        let count = 0;
+        let user = null;
+        let timerInt = null;
+        let lastSize = 0;
 
-        // --- AUTH ---
         window.doAuth = async () => {
             const name = document.getElementById('auth-name').value.trim();
             if(!name) return;
-            session = { 
-                name, 
-                isAdmin: name.toUpperCase() === 'YOHAN',
-                color: '#0084ff',
-                bio: ''
-            };
-            localStorage.setItem('im_user_v4', JSON.stringify(session));
+            user = { name, isAdmin: name.toUpperCase() === 'YOHAN', color: '#0084ff' };
+            localStorage.setItem('im_v4', JSON.stringify(user));
             await signInAnonymously(auth);
         };
 
         onAuthStateChanged(auth, (u) => {
-            if(u && session) {
-                document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
-                setTimeout(() => document.getElementById('auth-screen').style.display = 'none', 500);
-                document.getElementById('main-chat').classList.remove('hidden');
-                document.getElementById('nav-name').innerText = session.name;
-                document.getElementById('nav-avatar').innerText = session.name[0].toUpperCase();
-                if(session.isAdmin) document.getElementById('admin-trigger').classList.remove('hidden');
-                
-                syncChat();
-                syncCalls();
+            if(u && user) {
+                document.getElementById('auth-screen').classList.add('opacity-0');
+                setTimeout(() => {
+                    document.getElementById('auth-screen').classList.add('hidden');
+                    document.getElementById('main-chat').classList.remove('hidden');
+                }, 500);
+                document.getElementById('nav-name').innerText = user.name;
+                document.getElementById('nav-avatar').innerText = user.name[0].toUpperCase();
+                if(user.isAdmin) document.getElementById('admin-trigger').classList.remove('hidden');
+                initChat();
+                initCalls();
             }
         });
 
-        // --- MENSAGENS ---
-        const syncChat = () => {
-            const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), orderBy('createdAt', 'asc'));
+        const initChat = () => {
+            const q = query(collection(db, 'artifacts', app_uid, 'public', 'data', 'msgs'), orderBy('createdAt', 'asc'));
             onSnapshot(q, (snap) => {
                 const feed = document.getElementById('chat-feed');
                 feed.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.data();
-                    const isMe = m.user === session.name;
-                    const date = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
-                    
+                    const isMe = m.user === user.name;
                     const div = document.createElement('div');
                     div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
-                    
                     const bubble = document.createElement('div');
-                    bubble.className = `max-w-[85%] p-4 ${isMe ? 'message-me' : 'message-them'}`;
+                    bubble.className = `max-w-[85%] p-3 shadow-sm ${isMe ? 'message-me' : 'message-them'}`;
                     if(isMe && m.color) bubble.style.background = m.color;
-
-                    let html = `<span class="block text-[10px] font-black opacity-50 uppercase mb-1">${m.user}</span>`;
                     
-                    // Detetor inteligente de imagem
-                    const isImg = m.type === 'image' || (typeof m.text === 'string' && m.text.match(/\.(jpeg|jpg|gif|png|webp)$/) != null);
-
-                    if(isImg) {
-                        html += `<img src="${m.text}" class="rounded-lg w-full h-auto max-h-64 object-cover" loading="lazy" onclick="window.open('${m.text}')">`;
+                    if(m.type === 'img' || (m.text && m.text.match(/\.(jpg|jpeg|gif|png|webp)$/) != null)) {
+                        bubble.innerHTML = `<span class='text-[9px] font-bold opacity-50 block mb-1'>${m.user}</span><img src="${m.text}" class="rounded-lg max-h-60 w-auto">`;
                     } else {
-                        html += `<p class="text-[15px] font-semibold">${m.text}</p>`;
+                        bubble.innerHTML = `<span class='text-[9px] font-bold opacity-50 block mb-1'>${m.user}</span><p class="text-sm font-medium">${m.text}</p>`;
                     }
-
-                    html += `<span class="block text-[9px] mt-2 opacity-40 font-bold text-right">${date} ${isMe ? '✓✓' : ''}</span>`;
-                    
-                    bubble.innerHTML = html;
                     div.appendChild(bubble);
                     feed.appendChild(div);
                 });
-                
-                if(snap.size > count) {
+                if(snap.size > lastSize) {
                     document.getElementById('pop-sound').play().catch(()=>{});
-                    count = snap.size;
+                    lastSize = snap.size;
                 }
                 feed.scrollTop = feed.scrollHeight;
-            }, (err) => console.error("Erro Firestore:", err));
+            });
         };
 
-        window.sendMsg = async (val = null, type = 'text') => {
+        window.send = async (val = null, type = 'text') => {
             const input = document.getElementById('msg-input');
             const text = val || input.value.trim();
             if(!text) return;
-
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                text, user: session.name, color: session.color, type, createdAt: serverTimestamp()
+            await addDoc(collection(db, 'artifacts', app_uid, 'public', 'data', 'msgs'), {
+                text, user: user.name, color: user.color, type, createdAt: serverTimestamp()
             });
             input.value = "";
         };
 
-        // --- CHAMADAS ---
-        const syncCalls = () => {
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), (s) => {
-                const call = s.data();
-                if(call?.active && call.by !== session.name) {
-                    document.getElementById('incoming-overlay').classList.remove('hidden');
+        const initCalls = () => {
+            onSnapshot(doc(db, 'artifacts', app_uid, 'public', 'data', 'call'), (s) => {
+                const c = s.data();
+                if(c?.active && c.by !== user.name) {
+                    document.getElementById('call-in').classList.remove('hidden');
                     document.getElementById('ringtone').play().catch(()=>{});
-                } else if(!call?.active) {
-                    closeCall();
+                } else if(!c?.active) {
+                    endCallUI();
                 }
             });
         };
 
-        window.callAction = async (act) => {
+        window.call = async (act) => {
             if(act === 'start') {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), { active: true, by: session.name });
-                callAction('accept');
+                await setDoc(doc(db, 'artifacts', app_uid, 'public', 'data', 'call'), { active: true, by: user.name });
+                window.call('accept');
             } else if(act === 'accept') {
                 document.getElementById('ringtone').pause();
-                ui('incoming-overlay', false);
-                ui('active-call', true);
+                document.getElementById('call-in').classList.add('hidden');
+                document.getElementById('call-active').classList.remove('hidden');
                 startClock();
             } else if(act === 'reject') {
                 document.getElementById('ringtone').pause();
-                ui('incoming-overlay', false);
+                document.getElementById('call-in').classList.add('hidden');
             } else if(act === 'end') {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), { active: false });
+                await setDoc(doc(db, 'artifacts', app_uid, 'public', 'data', 'call'), { active: false });
             }
         };
 
-        const closeCall = () => {
+        const endCallUI = () => {
             document.getElementById('ringtone').pause();
-            ui('incoming-overlay', false);
-            ui('active-call', false);
-            clearInterval(timer);
+            document.getElementById('call-in').classList.add('hidden');
+            document.getElementById('call-active').classList.add('hidden');
+            clearInterval(timerInt);
         };
 
         const startClock = () => {
             let s = 0;
-            clearInterval(timer);
-            timer = setInterval(() => {
+            clearInterval(timerInt);
+            timerInt = setInterval(() => {
                 s++;
-                const min = Math.floor(s/60).toString().padStart(2,'0');
+                const m = Math.floor(s/60).toString().padStart(2,'0');
                 const sec = (s%60).toString().padStart(2,'0');
-                document.getElementById('call-timer').innerText = `${min}:${sec}`;
+                document.getElementById('timer').innerText = `${m}:${sec}`;
             }, 1000);
         };
 
-        // --- UTILITÁRIOS ---
-        window.ui = (id, show) => {
-            const el = document.getElementById(id);
-            if(show === 'toggle') el.classList.toggle('hidden');
-            else if(show) el.classList.remove('hidden');
-            else el.classList.add('hidden');
+        window.attach = () => {
+            const url = prompt("URL da Imagem ou GIF:");
+            if(url) send(url, 'img');
         };
 
-        window.insertEmoji = (e) => {
-            document.getElementById('msg-input').value += e;
-            ui('emoji-box', false);
-        };
-
-        window.attachMedia = () => {
-            const url = prompt("Cola o link da imagem ou GIF:");
-            if(url) sendMsg(url, 'image');
-        };
-
-        window.setTheme = (c) => {
-            session.color = c;
+        window.theme = (c) => {
+            user.color = c;
             document.getElementById('nav-avatar').style.background = c;
         };
 
-        window.saveProfile = () => {
-            session.bio = document.getElementById('bio-input').value;
-            localStorage.setItem('im_user_v4', JSON.stringify(session));
-            ui('profile-modal', false);
-        };
-
-        window.adminTool = async (t) => {
-            if(!session.isAdmin) return;
-            if(t === 'clear' && confirm("Apagar histórico?")) {
-                const s = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
+        window.admin = async (t) => {
+            if(!user.isAdmin) return;
+            if(t === 'clear' && confirm("Limpar histórico?")) {
+                const s = await getDocs(collection(db, app_uid, 'public', 'data', 'msgs'));
                 s.forEach(async (d) => await deleteDoc(d.ref));
-            } else if(t === 'announcement') {
-                const m = prompt("Mensagem oficial:");
-                if(m) sendMsg(`📢 [SISTEMA]: ${m}`);
+            } else if(t === 'alert') {
+                const m = prompt("Aviso:");
+                if(m) send(`📢 [SISTEMA]: ${m}`);
             }
-            ui('admin-panel', false);
+            document.getElementById('admin-panel').classList.add('hidden');
         };
 
-        document.getElementById('msg-input').addEventListener('keypress', e => e.key === 'Enter' && sendMsg());
-        
-        // Auto-login
-        const local = localStorage.getItem('im_user_v4');
-        if(local) {
-            session = JSON.parse(local);
-            signInAnonymously(auth);
-        }
+        document.getElementById('msg-input').addEventListener('keypress', e => e.key === 'Enter' && send());
+        const saved = localStorage.getItem('im_v4');
+        if(saved) { user = JSON.parse(saved); signInAnonymously(auth); }
     </script>
 </body>
 </html>
