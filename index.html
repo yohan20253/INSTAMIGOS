@@ -1,388 +1,432 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instamigos | Chat Privado</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Instamigos Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         
         :root {
             --primary: #0084ff;
-            --bg-light: #f0f2f5;
+            --bg-light: #f8fafc;
         }
 
         body { 
-            font-family: 'Inter', sans-serif; 
-            background-color: var(--bg-light); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #0f172a; 
             margin: 0; padding: 0; 
-            overscroll-behavior: contain;
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .message-me { 
-            background-color: var(--primary); 
+            background: linear-gradient(135deg, var(--primary), #0061ff);
             color: white; 
             align-self: flex-end; 
-            border-radius: 18px 18px 4px 18px; 
+            border-radius: 20px 20px 4px 20px; 
+            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.2);
         }
 
         .message-them { 
-            background-color: #ffffff; 
-            color: #1c1e21; 
+            background: white; 
+            color: #1e293b; 
             align-self: flex-start; 
-            border-radius: 18px 18px 18px 4px; 
-            border: 1px solid #e4e6eb;
+            border-radius: 20px 20px 20px 4px; 
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
         }
 
-        .glass-nav { 
-            background: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(12px); 
-            border-bottom: 1px solid rgba(0,0,0,0.1); 
+        .glass-header { 
+            background: rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(20px); 
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
         }
 
-        .emoji-picker {
+        .emoji-panel {
             display: none;
             position: absolute;
-            bottom: 80px;
-            left: 20px;
+            bottom: 90px;
+            left: 10px;
+            right: 10px;
             background: white;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            padding: 10px;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
-            z-index: 50;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 24px;
+            padding: 15px;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            z-index: 100;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 1px solid #f1f5f9;
         }
 
-        #call-overlay { z-index: 100; background: #000; }
-        
-        .incoming-call-anim {
-            animation: pulse-red 1.5s infinite;
+        .call-active-pulse {
+            animation: ring-glow 1.5s infinite;
         }
 
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+        @keyframes ring-glow {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.5); }
+            70% { box-shadow: 0 0 0 20px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .typing-dot {
+            width: 6px; height: 6px; background: #94a3b8; border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body>
 
-    <div id="app" class="max-w-lg mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col border-x border-gray-200">
+    <div id="app" class="max-w-md mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col overflow-hidden">
         
-        <!-- SOM DE NOTIFICAÇÃO (Simulado) -->
-        <audio id="ringtone-audio" loop>
-            <source src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3" type="audio/mpeg">
-        </audio>
+        <!-- ÁUDIOS -->
+        <audio id="ringtone" loop><source src="https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3"></audio>
+        <audio id="pop-sound"><source src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
-        <!-- LOGIN SCREEN -->
-        <div id="auth-screen" class="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8">
-            <div class="w-full max-w-sm text-center">
-                <div class="bg-blue-600 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <i class="fa-solid fa-bolt text-4xl text-white"></i>
-                </div>
-                <h1 class="text-3xl font-black mb-6">Instamigos</h1>
-                <input type="text" id="auth-user" placeholder="Seu Nome" class="w-full border-2 border-gray-100 rounded-2xl p-4 mb-4 outline-none focus:border-blue-500">
-                <button onclick="handleAuth()" id="auth-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg active:scale-95 transition">Entrar Agora</button>
-            </div>
-        </div>
-
-        <!-- PERFIL MODAL -->
-        <div id="profile-modal" class="hidden fixed inset-0 z-[60] bg-black/50 flex items-center justify-center p-6 backdrop-blur-sm">
-            <div class="bg-white w-full max-w-xs rounded-3xl p-6 shadow-2xl">
-                <h3 class="text-xl font-bold mb-4">Seu Perfil</h3>
-                <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Cor da Mensagem</label>
-                <input type="color" id="profile-color" class="w-full h-10 mb-4 rounded-lg cursor-pointer">
-                <label class="block text-xs font-bold text-gray-500 mb-1 uppercase">Bio</label>
-                <textarea id="profile-bio" placeholder="Fale sobre você..." class="w-full border p-2 rounded-xl text-sm mb-4"></textarea>
-                <button onclick="saveProfile()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Salvar Alterações</button>
-                <button onclick="closeProfile()" class="w-full mt-2 text-gray-500 text-sm">Cancelar</button>
-            </div>
-        </div>
-
-        <!-- MAIN CHAT -->
-        <div id="chat-interface" class="hidden flex flex-col h-screen">
-            <header class="glass-nav px-4 py-3 flex items-center justify-between z-10">
-                <div class="flex items-center cursor-pointer" onclick="openProfile()">
-                    <div id="user-avatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold mr-3">?</div>
-                    <div>
-                        <h2 id="user-display-name" class="font-bold text-sm">Carregando...</h2>
-                        <span class="text-[10px] text-green-500 font-bold uppercase">Online</span>
+        <!-- TELA DE ENTRADA -->
+        <div id="auth-screen" class="absolute inset-0 z-[100] bg-white flex flex-col items-center justify-center p-8 transition-all duration-500">
+            <div class="w-full text-center space-y-6">
+                <div class="relative inline-block">
+                    <div class="w-24 h-24 bg-blue-600 rounded-[2.5rem] flex items-center justify-center shadow-2xl animate-bounce">
+                        <i class="fa-solid fa-comment-nodes text-4xl text-white"></i>
                     </div>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="startGroupCall()" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 rounded-full">
+                <div>
+                    <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Instamigos <span class="text-blue-600">Pro</span></h1>
+                    <p class="text-slate-500 font-medium">Lugar de amigos, sem limites.</p>
+                </div>
+                <div class="pt-8 space-y-4">
+                    <input type="text" id="auth-name" placeholder="Como te chamas?" class="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 outline-none focus:border-blue-500 text-center font-bold text-lg transition-all">
+                    <button onclick="doAuth()" class="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all text-lg flex items-center justify-center gap-2">
+                        Entrar no Grupo <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFIL EDITÁVEL -->
+        <div id="profile-modal" class="hidden fixed inset-0 z-[110] bg-slate-900/80 backdrop-blur-md flex items-end sm:items-center justify-center">
+            <div class="bg-white w-full max-w-md rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl animate-in slide-in-from-bottom duration-300">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-black text-slate-900">Personalizar</h3>
+                    <button onclick="ui('profile-modal', false)" class="text-slate-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Escolhe a tua cor</label>
+                        <div class="flex gap-4 justify-between">
+                            <button onclick="setTheme('#0084ff')" class="w-12 h-12 rounded-2xl bg-[#0084ff] shadow-lg shadow-blue-200"></button>
+                            <button onclick="setTheme('#8b5cf6')" class="w-12 h-12 rounded-2xl bg-[#8b5cf6] shadow-lg shadow-purple-200"></button>
+                            <button onclick="setTheme('#ec4899')" class="w-12 h-12 rounded-2xl bg-[#ec4899] shadow-lg shadow-pink-200"></button>
+                            <button onclick="setTheme('#f59e0b')" class="w-12 h-12 rounded-2xl bg-[#f59e0b] shadow-lg shadow-orange-200"></button>
+                            <input type="color" onchange="setTheme(this.value)" class="w-12 h-12 rounded-2xl cursor-pointer bg-slate-100 overflow-hidden border-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-black text-slate-400 uppercase tracking-widest block mb-3">Tua Biografia</label>
+                        <textarea id="bio-input" placeholder="O que estás a pensar?" class="w-full bg-slate-50 border-2 border-slate-100 p-4 rounded-2xl text-sm outline-none focus:border-blue-500 h-28 resize-none font-medium"></textarea>
+                    </div>
+                    <button onclick="saveProfile()" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold text-lg active:scale-95 transition shadow-xl">Guardar Perfil</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- INTERFACE PRINCIPAL -->
+        <div id="main-chat" class="hidden flex flex-col h-screen">
+            <header class="glass-header px-4 py-3 flex items-center justify-between z-50 sticky top-0">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="ui('profile-modal', true)">
+                    <div id="nav-avatar" class="w-11 h-11 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg">?</div>
+                    <div>
+                        <h2 id="nav-name" class="font-bold text-slate-900 text-sm leading-tight">Carregando...</h2>
+                        <div class="flex items-center gap-1">
+                            <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Membros Online</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="callAction('start')" class="w-10 h-10 flex items-center justify-center text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 active:scale-90 transition">
                         <i class="fa-solid fa-phone"></i>
                     </button>
-                    <button onclick="toggleAdminPanel()" id="admin-btn" class="hidden w-10 h-10 flex items-center justify-center text-orange-500 bg-orange-50 rounded-full">
+                    <button onclick="ui('admin-panel', 'toggle')" id="admin-trigger" class="hidden w-10 h-10 flex items-center justify-center text-amber-500 bg-amber-50 rounded-xl">
                         <i class="fa-solid fa-crown"></i>
                     </button>
                 </div>
             </header>
 
-            <div id="admin-panel" class="hidden bg-gray-900 text-white p-4">
-                <button onclick="adminAction('clear')" class="text-xs bg-red-600 px-3 py-1 rounded">Limpar Chat</button>
-            </div>
-
-            <div id="messages-display" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-3 bg-gray-50"></div>
-
-            <!-- EMOJI PICKER -->
-            <div id="emoji-picker" class="emoji-picker grid">
-                <button onclick="addEmoji('😂')">😂</button>
-                <button onclick="addEmoji('😍')">😍</button>
-                <button onclick="addEmoji('🔥')">🔥</button>
-                <button onclick="addEmoji('🙌')">🙌</button>
-                <button onclick="addEmoji('❤️')">❤️</button>
-                <button onclick="addEmoji('👍')">👍</button>
-                <button onclick="addEmoji('😢')">😢</button>
-                <button onclick="addEmoji('😎')">😎</button>
-                <button onclick="addEmoji('🤔')">🤔</button>
-                <button onclick="addEmoji('🚀')">🚀</button>
-            </div>
-
-            <div class="p-3 bg-white border-t flex items-center gap-2">
-                <button onclick="toggleEmojis()" class="text-gray-400 text-xl px-2"><i class="fa-regular fa-face-smile"></i></button>
-                <button onclick="promptImage()" class="text-gray-400 text-xl px-2"><i class="fa-regular fa-image"></i></button>
-                <input type="text" id="msg-input" placeholder="Mensagem..." class="flex-1 bg-gray-100 rounded-full px-4 py-2 outline-none">
-                <button onclick="send()" class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane text-sm"></i></button>
-            </div>
-        </div>
-
-        <!-- CALL RECEIVING MODAL -->
-        <div id="incoming-call-modal" class="hidden fixed inset-0 z-[70] bg-blue-900/90 flex flex-col items-center justify-center text-white">
-            <div class="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mb-6 incoming-call-anim">
-                <i class="fa-solid fa-phone-volume text-4xl"></i>
-            </div>
-            <h2 class="text-2xl font-bold mb-2">Chamada em Grupo</h2>
-            <p class="mb-10 text-blue-200">Todos estão entrando...</p>
-            <div class="flex gap-8">
-                <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-2xl shadow-xl"><i class="fa-solid fa-phone-slash"></i></button>
-                <button onclick="acceptCall()" class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-2xl shadow-xl"><i class="fa-solid fa-check"></i></button>
-            </div>
-        </div>
-
-        <!-- CALL ACTIVE OVERLAY -->
-        <div id="call-overlay" class="hidden fixed inset-0 flex flex-col items-center justify-around py-20 text-white">
-            <div class="text-center">
-                <div class="w-32 h-32 bg-gray-800 rounded-full mx-auto mb-4 border-4 border-blue-500 flex items-center justify-center overflow-hidden">
-                    <i class="fa-solid fa-headset text-5xl text-blue-400"></i>
+            <!-- PAINEL ADMIN -->
+            <div id="admin-panel" class="hidden bg-slate-900 text-white p-5 animate-in slide-in-from-top border-b border-amber-500/30">
+                <p class="text-[10px] font-black text-amber-500 tracking-widest mb-4">CONTROLO DO MESTRE YOHAN</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="adminTool('clear')" class="bg-red-500/20 text-red-400 border border-red-500/30 py-3 rounded-xl font-bold text-xs"><i class="fa-solid fa-eraser mr-2"></i>LIMPAR TUDO</button>
+                    <button onclick="adminTool('announcement')" class="bg-blue-500/20 text-blue-400 border border-blue-500/30 py-3 rounded-xl font-bold text-xs"><i class="fa-solid fa-bullhorn mr-2"></i>ANÚNCIO</button>
                 </div>
-                <h3 class="text-xl font-bold uppercase tracking-widest">Em Chamada</h3>
-                <p id="call-timer" class="text-blue-400 font-mono">00:00</p>
             </div>
-            <button onclick="endCall()" class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center text-3xl shadow-2xl border-4 border-white/10"><i class="fa-solid fa-phone-slash"></i></button>
+
+            <!-- CHAT FEED -->
+            <div id="chat-feed" class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#f8fafc]">
+                <!-- Mensagens -->
+            </div>
+
+            <!-- EMOJIS -->
+            <div id="emoji-box" class="emoji-panel grid">
+                <button onclick="insertEmoji('😂')">😂</button>
+                <button onclick="insertEmoji('🔥')">🔥</button>
+                <button onclick="insertEmoji('😍')">😍</button>
+                <button onclick="insertEmoji('👍')">👍</button>
+                <button onclick="insertEmoji('❤️')">❤️</button>
+                <button onclick="insertEmoji('😎')">😎</button>
+                <button onclick="insertEmoji('🙌')">🙌</button>
+                <button onclick="insertEmoji('✨')">✨</button>
+                <button onclick="insertEmoji('🚀')">🚀</button>
+                <button onclick="insertEmoji('😢')">😢</button>
+                <button onclick="insertEmoji('🤔')">🤔</button>
+                <button onclick="insertEmoji('😜')">😜</button>
+            </div>
+
+            <!-- BARRA DE INPUT -->
+            <div class="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
+                <div class="flex gap-1">
+                    <button onclick="ui('emoji-box', 'toggle')" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-500 transition"><i class="fa-regular fa-face-smile text-xl"></i></button>
+                    <button onclick="attachMedia()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-blue-500 transition"><i class="fa-regular fa-image text-xl"></i></button>
+                </div>
+                <input type="text" id="msg-input" placeholder="Diz algo..." class="flex-1 bg-slate-50 rounded-2xl px-5 py-3 outline-none focus:bg-white border-2 border-transparent focus:border-slate-100 transition-all font-medium">
+                <button onclick="sendMsg()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-700 active:scale-90 transition-all">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- OVERLAYS DE CHAMADA -->
+        <div id="incoming-overlay" class="hidden fixed inset-0 z-[200] bg-blue-700 flex flex-col items-center justify-center text-white p-10 animate-in fade-in duration-300">
+            <div class="w-32 h-32 bg-white/20 rounded-full flex items-center justify-center mb-10 call-active-pulse">
+                <i class="fa-solid fa-phone-volume text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-black mb-2 tracking-tight">Chamada Ativa!</h2>
+            <p class="text-blue-100 opacity-80 mb-16 font-medium">Os teus amigos estão à espera...</p>
+            <div class="flex gap-10">
+                <button onclick="callAction('reject')" class="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-3xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-phone-slash"></i></button>
+                <button onclick="callAction('accept')" class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center text-3xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-check"></i></button>
+            </div>
+        </div>
+
+        <div id="active-call" class="hidden fixed inset-0 z-[201] bg-slate-950 flex flex-col items-center justify-around py-20 text-white">
+            <div class="text-center space-y-6">
+                <div class="w-44 h-44 bg-slate-900 rounded-[3.5rem] mx-auto border-4 border-blue-500 flex items-center justify-center shadow-[0_0_60px_rgba(59,130,246,0.3)]">
+                    <div class="flex gap-2">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot" style="animation-delay: 0.2s"></div>
+                        <div class="typing-dot" style="animation-delay: 0.4s"></div>
+                    </div>
+                </div>
+                <h3 class="text-xl font-black tracking-[0.3em] text-blue-400">AUDIO LIVE</h3>
+                <p id="call-timer" class="text-4xl font-mono font-bold">00:00</p>
+            </div>
+            <button onclick="callAction('end')" class="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center text-4xl shadow-2xl active:scale-90 border-4 border-white/20"><i class="fa-solid fa-phone-slash"></i></button>
         </div>
 
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg",
-            authDomain: "instamigos.firebaseapp.com",
-            projectId: "instamigos",
-            storageBucket: "instamigos.firebasestorage.app",
-            messagingSenderId: "186154054682",
-            appId: "1:186154054682:web:72837e4985cda660ab8da3",
-            measurementId: "G-DEY3GV28EN"
-        };
-
+        // CONFIG - Garantindo que usamos caminhos seguros
+        const firebaseConfig = JSON.parse('{"apiKey":"AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg","authDomain":"instamigos.firebaseapp.com","projectId":"instamigos","storageBucket":"instamigos.firebasestorage.app","messagingSenderId":"186154054682","appId":"1:186154054682:web:72837e4985cda660ab8da3","measurementId":"G-DEY3GV28EN"}');
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = 'instamigos-v2';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'instamigos-v4-final';
 
-        let userSession = null;
-        let callTimerInterval = null;
-        const ringtone = document.getElementById('ringtone-audio');
+        let session = null;
+        let timer = null;
+        let count = 0;
 
         // --- AUTH ---
-        window.handleAuth = async () => {
-            const name = document.getElementById('auth-user').value.trim();
+        window.doAuth = async () => {
+            const name = document.getElementById('auth-name').value.trim();
             if(!name) return;
-            
-            userSession = { 
+            session = { 
                 name, 
                 isAdmin: name.toUpperCase() === 'YOHAN',
                 color: '#0084ff',
                 bio: ''
             };
-            localStorage.setItem('instamigos_user', JSON.stringify(userSession));
+            localStorage.setItem('im_user_v4', JSON.stringify(session));
             await signInAnonymously(auth);
         };
 
-        onAuthStateChanged(auth, (user) => {
-            if(user && userSession) {
-                document.getElementById('auth-screen').classList.add('hidden');
-                document.getElementById('chat-interface').classList.remove('hidden');
-                document.getElementById('user-display-name').innerText = userSession.name;
-                document.getElementById('user-avatar').innerText = userSession.name[0].toUpperCase();
-                if(userSession.isAdmin) document.getElementById('admin-btn').classList.remove('hidden');
+        onAuthStateChanged(auth, (u) => {
+            if(u && session) {
+                document.getElementById('auth-screen').classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => document.getElementById('auth-screen').style.display = 'none', 500);
+                document.getElementById('main-chat').classList.remove('hidden');
+                document.getElementById('nav-name').innerText = session.name;
+                document.getElementById('nav-avatar').innerText = session.name[0].toUpperCase();
+                if(session.isAdmin) document.getElementById('admin-trigger').classList.remove('hidden');
                 
-                listenMessages();
-                listenCalls();
+                syncChat();
+                syncCalls();
             }
         });
 
         // --- MENSAGENS ---
-        const listenMessages = () => {
+        const syncChat = () => {
             const q = query(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), orderBy('createdAt', 'asc'));
             onSnapshot(q, (snap) => {
-                const display = document.getElementById('messages-display');
-                display.innerHTML = "";
+                const feed = document.getElementById('chat-feed');
+                feed.innerHTML = "";
                 snap.forEach(d => {
                     const m = d.data();
-                    const isMe = m.user === userSession.name;
+                    const isMe = m.user === session.name;
+                    const date = m.createdAt ? new Date(m.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
                     
-                    const wrap = document.createElement('div');
-                    wrap.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+                    const div = document.createElement('div');
+                    div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
                     
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `max-w-[80%] p-3 shadow-sm ${isMe ? 'message-me' : 'message-them'}`;
-                    if(isMe && m.userColor) msgDiv.style.backgroundColor = m.userColor;
+                    const bubble = document.createElement('div');
+                    bubble.className = `max-w-[85%] p-4 ${isMe ? 'message-me' : 'message-them'}`;
+                    if(isMe && m.color) bubble.style.background = m.color;
 
-                    let content = `<span class="block text-[9px] font-bold opacity-70 uppercase mb-1">${m.user}</span>`;
+                    let html = `<span class="block text-[10px] font-black opacity-50 uppercase mb-1">${m.user}</span>`;
                     
-                    if(m.type === 'image') {
-                        content += `<img src="${m.text}" class="rounded-lg max-w-full h-auto cursor-pointer" onclick="window.open('${m.text}')">`;
+                    // Detetor inteligente de imagem
+                    const isImg = m.type === 'image' || (typeof m.text === 'string' && m.text.match(/\.(jpeg|jpg|gif|png|webp)$/) != null);
+
+                    if(isImg) {
+                        html += `<img src="${m.text}" class="rounded-lg w-full h-auto max-h-64 object-cover" loading="lazy" onclick="window.open('${m.text}')">`;
                     } else {
-                        content += `<p class="text-sm">${m.text}</p>`;
+                        html += `<p class="text-[15px] font-semibold">${m.text}</p>`;
                     }
 
-                    msgDiv.innerHTML = content;
-                    wrap.appendChild(msgDiv);
-                    display.appendChild(wrap);
+                    html += `<span class="block text-[9px] mt-2 opacity-40 font-bold text-right">${date} ${isMe ? '✓✓' : ''}</span>`;
+                    
+                    bubble.innerHTML = html;
+                    div.appendChild(bubble);
+                    feed.appendChild(div);
                 });
-                display.scrollTop = display.scrollHeight;
-            });
+                
+                if(snap.size > count) {
+                    document.getElementById('pop-sound').play().catch(()=>{});
+                    count = snap.size;
+                }
+                feed.scrollTop = feed.scrollHeight;
+            }, (err) => console.error("Erro Firestore:", err));
         };
 
-        window.send = async (textOverride = null, type = 'text') => {
+        window.sendMsg = async (val = null, type = 'text') => {
             const input = document.getElementById('msg-input');
-            const text = textOverride || input.value.trim();
+            const text = val || input.value.trim();
             if(!text) return;
 
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                text,
-                type,
-                user: userSession.name,
-                userColor: userSession.color,
-                createdAt: serverTimestamp()
+                text, user: session.name, color: session.color, type, createdAt: serverTimestamp()
             });
             input.value = "";
         };
 
         // --- CHAMADAS ---
-        const listenCalls = () => {
-            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), (docSnap) => {
-                const data = docSnap.data();
-                if(!data) return;
-
-                if(data.active && data.startedBy !== userSession.name) {
-                    document.getElementById('incoming-call-modal').classList.remove('hidden');
-                    ringtone.play().catch(() => console.log("Interação necessária para som"));
-                } else if (!data.active) {
-                    hideCallUI();
+        const syncCalls = () => {
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), (s) => {
+                const call = s.data();
+                if(call?.active && call.by !== session.name) {
+                    document.getElementById('incoming-overlay').classList.remove('hidden');
+                    document.getElementById('ringtone').play().catch(()=>{});
+                } else if(!call?.active) {
+                    closeCall();
                 }
             });
         };
 
-        window.startGroupCall = async () => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), {
-                active: true,
-                startedBy: userSession.name,
-                timestamp: serverTimestamp()
-            });
-            acceptCall();
-        };
-
-        window.acceptCall = () => {
-            ringtone.pause();
-            document.getElementById('incoming-call-modal').classList.add('hidden');
-            document.getElementById('call-overlay').classList.remove('hidden');
-            startTimer();
-        };
-
-        window.rejectCall = () => {
-            ringtone.pause();
-            document.getElementById('incoming-call-modal').classList.add('hidden');
-        };
-
-        window.endCall = async () => {
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_state'), { active: false });
-        };
-
-        const hideCallUI = () => {
-            ringtone.pause();
-            document.getElementById('incoming-call-modal').classList.add('hidden');
-            document.getElementById('call-overlay').classList.add('hidden');
-            clearInterval(callTimerInterval);
-        };
-
-        const startTimer = () => {
-            let sec = 0;
-            clearInterval(callTimerInterval);
-            callTimerInterval = setInterval(() => {
-                sec++;
-                const m = Math.floor(sec/60).toString().padStart(2,'0');
-                const s = (sec%60).toString().padStart(2,'0');
-                document.getElementById('call-timer').innerText = `${m}:${s}`;
-            }, 1000);
-        };
-
-        // --- UTILS ---
-        window.toggleEmojis = () => {
-            const p = document.getElementById('emoji-picker');
-            p.style.display = p.style.display === 'grid' ? 'none' : 'grid';
-        };
-
-        window.addEmoji = (emoji) => {
-            document.getElementById('msg-input').value += emoji;
-            toggleEmojis();
-        };
-
-        window.promptImage = () => {
-            const url = prompt("Cole a URL da imagem ou GIF:");
-            if(url) send(url, 'image');
-        };
-
-        window.openProfile = () => {
-            document.getElementById('profile-modal').classList.remove('hidden');
-            document.getElementById('profile-color').value = userSession.color;
-            document.getElementById('profile-bio').value = userSession.bio;
-        };
-
-        window.closeProfile = () => document.getElementById('profile-modal').classList.add('hidden');
-
-        window.saveProfile = () => {
-            userSession.color = document.getElementById('profile-color').value;
-            userSession.bio = document.getElementById('profile-bio').value;
-            localStorage.setItem('instamigos_user', JSON.stringify(userSession));
-            closeProfile();
-        };
-
-        window.toggleAdminPanel = () => document.getElementById('admin-panel').classList.toggle('hidden');
-
-        window.adminAction = async (act) => {
-            if(act === 'clear' && confirm("Apagar tudo?")) {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
-                snap.forEach(async (d) => await deleteDoc(d.ref));
+        window.callAction = async (act) => {
+            if(act === 'start') {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), { active: true, by: session.name });
+                callAction('accept');
+            } else if(act === 'accept') {
+                document.getElementById('ringtone').pause();
+                ui('incoming-overlay', false);
+                ui('active-call', true);
+                startClock();
+            } else if(act === 'reject') {
+                document.getElementById('ringtone').pause();
+                ui('incoming-overlay', false);
+            } else if(act === 'end') {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'call_control'), { active: false });
             }
         };
 
-        document.getElementById('msg-input').addEventListener('keypress', e => e.key === 'Enter' && send());
+        const closeCall = () => {
+            document.getElementById('ringtone').pause();
+            ui('incoming-overlay', false);
+            ui('active-call', false);
+            clearInterval(timer);
+        };
 
-        // Recuperar sessão
-        const saved = localStorage.getItem('instamigos_user');
-        if(saved) {
-            userSession = JSON.parse(saved);
+        const startClock = () => {
+            let s = 0;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                s++;
+                const min = Math.floor(s/60).toString().padStart(2,'0');
+                const sec = (s%60).toString().padStart(2,'0');
+                document.getElementById('call-timer').innerText = `${min}:${sec}`;
+            }, 1000);
+        };
+
+        // --- UTILITÁRIOS ---
+        window.ui = (id, show) => {
+            const el = document.getElementById(id);
+            if(show === 'toggle') el.classList.toggle('hidden');
+            else if(show) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        };
+
+        window.insertEmoji = (e) => {
+            document.getElementById('msg-input').value += e;
+            ui('emoji-box', false);
+        };
+
+        window.attachMedia = () => {
+            const url = prompt("Cola o link da imagem ou GIF:");
+            if(url) sendMsg(url, 'image');
+        };
+
+        window.setTheme = (c) => {
+            session.color = c;
+            document.getElementById('nav-avatar').style.background = c;
+        };
+
+        window.saveProfile = () => {
+            session.bio = document.getElementById('bio-input').value;
+            localStorage.setItem('im_user_v4', JSON.stringify(session));
+            ui('profile-modal', false);
+        };
+
+        window.adminTool = async (t) => {
+            if(!session.isAdmin) return;
+            if(t === 'clear' && confirm("Apagar histórico?")) {
+                const s = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
+                s.forEach(async (d) => await deleteDoc(d.ref));
+            } else if(t === 'announcement') {
+                const m = prompt("Mensagem oficial:");
+                if(m) sendMsg(`📢 [SISTEMA]: ${m}`);
+            }
+            ui('admin-panel', false);
+        };
+
+        document.getElementById('msg-input').addEventListener('keypress', e => e.key === 'Enter' && sendMsg());
+        
+        // Auto-login
+        const local = localStorage.getItem('im_user_v4');
+        if(local) {
+            session = JSON.parse(local);
             signInAnonymously(auth);
         }
     </script>
