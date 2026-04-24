@@ -102,7 +102,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // CONFIGURAÇÃO FIREBASE
         const firebaseConfig = JSON.parse(__firebase_config);
@@ -112,21 +112,34 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'amigos-chat-yohan';
 
         let userSession = null;
+        let unsubscribeMessages = null;
 
-        // AUTHENTICATION
+        // AUTHENTICATION LOGIC
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+
         window.handleAuth = async () => {
             const user = document.getElementById('auth-user').value.trim();
             const pass = document.getElementById('auth-pass').value.trim();
 
             if(!user || !pass) return alert("Preencha usuário e senha!");
 
-            // Login Simples (Nesta versão, salvamos no localStorage para simular persistência)
             userSession = { name: user, isAdmin: user.toUpperCase() === 'YOHAN' };
             localStorage.setItem('chat_user', JSON.stringify(userSession));
             
-            await signInAnonymously(auth);
-            initApp();
+            await initAuth();
         };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && userSession) {
+                initApp();
+            }
+        });
 
         const initApp = () => {
             if(!userSession) return;
@@ -143,12 +156,17 @@
 
         // LOAD MESSAGES
         const loadMessages = () => {
+            if (!auth.currentUser) return;
+            
+            // Cleanup existing listener if any
+            if (unsubscribeMessages) unsubscribeMessages();
+
             const q = query(
                 collection(db, 'artifacts', appId, 'public', 'data', 'messages'),
                 orderBy('createdAt', 'asc')
             );
 
-            onSnapshot(q, (snapshot) => {
+            unsubscribeMessages = onSnapshot(q, (snapshot) => {
                 const display = document.getElementById('messages-display');
                 display.innerHTML = "";
                 
@@ -165,7 +183,9 @@
                     display.appendChild(div);
                 });
                 display.scrollTop = display.scrollHeight;
-            }, (err) => console.error(err));
+            }, (err) => {
+                console.error("Firestore error:", err);
+            });
         };
 
         // SEND MESSAGE
@@ -174,14 +194,17 @@
             const text = input.value.trim();
             if(!text || !auth.currentUser) return;
 
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                text: text,
-                user: userSession.name,
-                isAdmin: userSession.isAdmin,
-                createdAt: serverTimestamp()
-            });
-
-            input.value = "";
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
+                    text: text,
+                    user: userSession.name,
+                    isAdmin: !!userSession.isAdmin,
+                    createdAt: serverTimestamp()
+                });
+                input.value = "";
+            } catch (e) {
+                console.error("Error sending message:", e);
+            }
         };
 
         // ADMIN ACTIONS
@@ -191,12 +214,14 @@
         };
 
         window.adminAction = async (action) => {
+            if (!auth.currentUser || !userSession.isAdmin) return;
+
             if(action === 'clear') {
                 if(confirm("Deseja apagar TODO o chat?")) {
                     const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
-                    snap.forEach(async (d) => {
+                    for (const d of snap.docs) {
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', d.id));
-                    });
+                    }
                 }
             } else if (action === 'alert') {
                 const msg = prompt("Digite o aviso global:");
@@ -220,7 +245,7 @@
         // LOGOUT
         window.logout = () => {
             localStorage.removeItem('chat_user');
-            location.reload();
+            auth.signOut().then(() => location.reload());
         };
 
         // Event listeners
@@ -232,7 +257,7 @@
         const saved = localStorage.getItem('chat_user');
         if(saved) {
             userSession = JSON.parse(saved);
-            signInAnonymously(auth).then(() => initApp());
+            initAuth();
         }
 
     </script>
