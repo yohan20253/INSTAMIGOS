@@ -147,7 +147,7 @@
                 </div>
             </header>
 
-            <!-- Admin Panel (Oculto por padrão) -->
+            <!-- Admin Panel -->
             <div id="admin-panel" class="hidden bg-gray-900 text-white p-5 absolute top-[76px] left-0 right-0 z-20 border-b-2 border-orange-500 shadow-2xl animate-in slide-in-from-top duration-300">
                 <div class="flex items-center gap-2 mb-4 text-orange-400">
                     <i class="fa-solid fa-crown"></i>
@@ -209,14 +209,25 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Configurações do Firebase injetadas pelo ambiente
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // SUA CONFIGURAÇÃO REAL DO FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBWUYf1Fhmif7Vpc77oHBGrA_N9azOGvbg",
+            authDomain: "instamigos.firebaseapp.com",
+            projectId: "instamigos",
+            storageBucket: "instamigos.firebasestorage.app",
+            messagingSenderId: "186154054682",
+            appId: "1:186154054682:web:72837e4985cda660ab8da3",
+            measurementId: "G-DEY3GV28EN"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'instamigos-chat-yohan';
+        
+        // Caminho único para as mensagens (seguindo a regra de storage do ambiente)
+        const appId = 'instamigos-prod';
 
         let userSession = null;
         let unsubscribeMessages = null;
@@ -238,14 +249,11 @@
 
         const initAuth = async () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Login anônimo para permitir escrita no Firestore sem senha
+                await signInAnonymously(auth);
             } catch (e) {
                 console.error("Erro Firebase Auth:", e);
-                alert("Falha na ligação segura.");
+                alert("Falha na ligação segura. Verifique as regras do Firestore.");
                 setBtnLoading(false);
             }
         };
@@ -292,6 +300,7 @@
             if (!auth.currentUser) return;
             if (unsubscribeMessages) unsubscribeMessages();
 
+            // Referência para a coleção seguindo a estrutura recomendada
             const q = query(
                 collection(db, 'artifacts', appId, 'public', 'data', 'messages'),
                 orderBy('createdAt', 'asc')
