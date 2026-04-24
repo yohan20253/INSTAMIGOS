@@ -8,90 +8,126 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; margin: 0; padding: 0; }
         .chat-container { height: calc(100vh - 140px); }
         .admin-badge { background: linear-gradient(90deg, #ff8a00, #e52e71); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
         .message-me { background-color: #0084ff; color: white; align-self: flex-end; border-radius: 18px 18px 4px 18px; }
         .message-them { background-color: #e4e6eb; color: black; align-self: flex-start; border-radius: 18px 18px 18px 4px; }
         .glass-nav { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid #ddd; }
         #call-overlay { z-index: 100; background: rgba(0,0,0,0.95); }
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     </style>
 </head>
 <body class="bg-gray-100">
 
-    <div id="app" class="max-w-lg mx-auto bg-white min-h-screen shadow-2xl relative">
+    <div id="app" class="max-w-lg mx-auto bg-white min-h-screen shadow-2xl relative flex flex-col">
         
-        <!-- LOGIN SCREEN (SEM SENHA) -->
+        <!-- LOGIN SCREEN -->
         <div id="auth-screen" class="absolute inset-0 z-50 bg-white flex flex-col items-center justify-center p-8">
             <div class="w-full max-w-sm">
                 <div class="text-center mb-8">
-                    <i class="fa-solid fa-comments text-5xl text-blue-500 mb-2"></i>
+                    <div class="bg-blue-50 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-comments text-4xl text-blue-500"></i>
+                    </div>
                     <h1 class="text-3xl font-bold text-gray-800">Chat Amigos</h1>
-                    <p class="text-gray-500">Escolha o seu nome para entrar</p>
+                    <p class="text-gray-500">Introduza o seu nome para entrar</p>
                 </div>
                 
                 <div class="space-y-4">
-                    <input type="text" id="auth-user" placeholder="O seu nome" class="w-full border border-gray-300 rounded-lg p-4 text-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="auth-user" placeholder="O seu nome" class="w-full border border-gray-200 rounded-xl p-4 pl-12 text-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                    </div>
                     
-                    <button onclick="handleAuth()" id="auth-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-lg hover:bg-blue-700 transition flex items-center justify-center text-lg">
+                    <button onclick="handleAuth()" id="auth-btn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center text-lg shadow-lg active:scale-95">
                         <span id="btn-text">Entrar no Chat</span>
                     </button>
                 </div>
-                <p class="mt-6 text-xs text-center text-gray-400">Insira o seu nome para começar a conversar com os seus amigos.</p>
+                <p class="mt-8 text-xs text-center text-gray-400 leading-relaxed">
+                    Ao entrar, você concorda em compartilhar o seu nome com outros usuários online no chat geral.
+                </p>
             </div>
         </div>
 
         <!-- MAIN CHAT INTERFACE -->
-        <div id="chat-interface" class="hidden flex flex-col h-screen">
+        <div id="chat-interface" class="hidden flex flex-col h-screen overflow-hidden">
             <!-- Header -->
-            <header class="glass-nav px-4 py-3 flex items-center justify-between sticky top-0">
+            <header class="glass-nav px-4 py-3 flex items-center justify-between z-10">
                 <div class="flex items-center">
-                    <div id="status-dot" class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                    <h2 class="font-bold text-lg">Chat Geral</h2>
-                    <div id="admin-indicator" class="hidden ml-2 admin-badge uppercase">ADMIN</div>
+                    <div class="relative mr-3">
+                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="w-3 h-3 bg-green-500 rounded-full absolute bottom-0 right-0 border-2 border-white"></div>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-gray-800">Chat Geral</h2>
+                        <div id="admin-indicator" class="hidden admin-badge inline-block">SISTEMA ADMIN</div>
+                    </div>
                 </div>
-                <div class="flex space-x-4">
-                    <button onclick="toggleAdminPanel()" id="admin-btn" class="hidden text-orange-500"><i class="fa-solid fa-shield-halved"></i></button>
-                    <button onclick="openCall()" class="text-blue-500 text-lg"><i class="fa-solid fa-phone"></i></button>
-                    <button onclick="logout()" class="text-gray-400 hover:text-red-500"><i class="fa-solid fa-right-from-bracket"></i></button>
+                <div class="flex space-x-3">
+                    <button onclick="toggleAdminPanel()" id="admin-btn" class="hidden w-10 h-10 flex items-center justify-center text-orange-500 hover:bg-orange-50 rounded-full transition">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </button>
+                    <button onclick="openCall()" class="w-10 h-10 flex items-center justify-center text-blue-500 hover:bg-blue-50 rounded-full transition">
+                        <i class="fa-solid fa-phone"></i>
+                    </button>
+                    <button onclick="logout()" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
                 </div>
             </header>
 
-            <!-- Admin Panel (Floating) -->
-            <div id="admin-panel" class="hidden bg-gray-900 text-white p-4 absolute top-14 left-0 right-0 z-40 border-b border-orange-500">
-                <h3 class="font-bold text-orange-500 mb-2 underline italic">Painel de Controlo YOHAN</h3>
+            <!-- Admin Panel -->
+            <div id="admin-panel" class="hidden bg-gray-900 text-white p-4 absolute top-16 left-0 right-0 z-20 border-b border-orange-500 shadow-xl">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-orange-400 text-sm flex items-center gap-2">
+                        <i class="fa-solid fa-lock"></i> PAINEL YOHAN
+                    </h3>
+                </div>
                 <div class="flex flex-wrap gap-2">
-                    <button onclick="adminAction('clear')" class="bg-red-600 px-3 py-1 rounded text-xs">Limpar Histórico</button>
-                    <button onclick="adminAction('alert')" class="bg-blue-600 px-3 py-1 rounded text-xs">Aviso Global</button>
-                    <button onclick="adminAction('close')" class="bg-gray-700 px-3 py-1 rounded text-xs">Fechar Painel</button>
+                    <button onclick="adminAction('clear')" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-xs font-bold transition">Limpar Histórico</button>
+                    <button onclick="adminAction('alert')" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-xs font-bold transition">Enviar Aviso</button>
+                    <button onclick="adminAction('close')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-xs font-bold transition">Fechar</button>
                 </div>
             </div>
 
             <!-- Messages Area -->
-            <div id="messages-display" class="chat-container overflow-y-auto p-4 flex flex-col space-y-3">
-                <!-- Mensagens carregadas aqui -->
+            <div id="messages-display" class="flex-1 overflow-y-auto p-4 flex flex-col space-y-3 bg-gray-50">
+                <!-- Mensagens dinâmicas -->
             </div>
 
             <!-- Input Area -->
-            <div class="p-4 bg-white border-t flex items-center sticky bottom-0">
-                <button class="text-gray-400 mr-3 text-xl"><i class="fa-regular fa-face-smile"></i></button>
-                <input type="text" id="msg-input" placeholder="Escreva uma mensagem..." class="flex-1 bg-gray-100 rounded-full px-4 py-2 outline-none focus:bg-white focus:ring-1 focus:ring-blue-300">
-                <button onclick="send()" class="ml-3 text-blue-600 font-bold text-xl"><i class="fa-solid fa-paper-plane"></i></button>
+            <div class="p-4 bg-white border-t flex items-center">
+                <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-blue-500 transition mr-1">
+                    <i class="fa-regular fa-face-smile text-xl"></i>
+                </button>
+                <div class="flex-1 relative">
+                    <input type="text" id="msg-input" placeholder="Escreva uma mensagem..." class="w-full bg-gray-100 rounded-2xl px-4 py-3 outline-none focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all border border-transparent focus:border-blue-200">
+                </div>
+                <button onclick="send()" class="ml-3 w-12 h-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg hover:bg-blue-700 active:scale-90 transition-all">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
             </div>
         </div>
 
         <!-- CALL OVERLAY -->
         <div id="call-overlay" class="hidden fixed inset-0 flex flex-col items-center justify-between py-24 text-white">
             <div class="text-center">
-                <div class="w-32 h-32 bg-gray-700 rounded-full mx-auto mb-6 flex items-center justify-center border-4 border-blue-500 animate-pulse">
-                    <i class="fa-solid fa-user text-5xl"></i>
+                <div class="w-32 h-32 bg-gray-800 rounded-full mx-auto mb-6 flex items-center justify-center border-4 border-blue-500 animate-pulse">
+                    <i class="fa-solid fa-user-group text-5xl text-blue-500"></i>
                 </div>
                 <h2 class="text-3xl font-bold mb-2">Chamada de Grupo</h2>
-                <p class="text-blue-400">A ligar...</p>
+                <p id="call-timer" class="text-blue-400 font-mono">00:00</p>
+                <p class="text-gray-400 mt-2">A aguardar participantes...</p>
             </div>
             <div class="flex space-x-12">
-                <button class="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-microphone"></i></button>
-                <button onclick="closeCall()" class="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-2xl"><i class="fa-solid fa-phone-slash"></i></button>
+                <button class="w-16 h-16 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-2xl transition shadow-xl"><i class="fa-solid fa-microphone"></i></button>
+                <button onclick="closeCall()" class="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center text-3xl transition shadow-xl active:scale-90"><i class="fa-solid fa-phone-slash"></i></button>
+                <button class="w-16 h-16 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center text-2xl transition shadow-xl"><i class="fa-solid fa-video"></i></button>
             </div>
         </div>
 
@@ -108,10 +144,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'amigos-chat-yohan';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'chat-amigos-v1';
 
         let userSession = null;
         let unsubscribeMessages = null;
+        let callInterval = null;
 
         // Funções de utilidade UI
         const setBtnLoading = (isLoading) => {
@@ -137,16 +174,18 @@
                     await signInAnonymously(auth);
                 }
             } catch (e) {
-                console.error("Erro na autenticação:", e);
-                alert("Erro ao ligar ao servidor.");
+                console.error("Erro auth:", e);
+                alert("Erro ao conectar com o banco de dados.");
                 setBtnLoading(false);
             }
         };
 
         window.handleAuth = async () => {
-            const user = document.getElementById('auth-user').value.trim();
+            const userInput = document.getElementById('auth-user');
+            const user = userInput.value.trim();
 
             if(!user) return alert("Por favor, introduza um nome!");
+            if(user.length < 2) return alert("Nome muito curto!");
 
             setBtnLoading(true);
             userSession = { name: user, isAdmin: user.toUpperCase() === 'YOHAN' };
@@ -181,7 +220,6 @@
         // LOAD MESSAGES
         const loadMessages = () => {
             if (!auth.currentUser) return;
-            
             if (unsubscribeMessages) unsubscribeMessages();
 
             const q = query(
@@ -198,18 +236,24 @@
                     if (!data.user) return;
 
                     const isMe = data.user === userSession.name;
+                    const isAdminMsg = data.isAdmin === true;
                     
+                    const container = document.createElement('div');
+                    container.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
                     const div = document.createElement('div');
-                    div.className = `max-w-[80%] p-3 mb-1 flex flex-col ${isMe ? 'message-me' : 'message-them'}`;
+                    div.className = `max-w-[85%] p-3 mb-1 shadow-sm transition-all duration-300 ${isMe ? 'message-me' : 'message-them'}`;
                     
-                    const meta = `<span class="text-[10px] opacity-60 mb-1 font-bold">${data.isAdmin ? '[ADMIN] ' : ''}${data.user}</span>`;
-                    div.innerHTML = `${meta}<div class="text-sm">${data.text}</div>`;
+                    const role = isAdminMsg ? '<span class="text-[9px] bg-white/20 px-1 rounded mr-1">ADMIN</span>' : '';
+                    const meta = `<span class="text-[10px] font-bold opacity-70 mb-1 block">${role}${data.user}</span>`;
+                    div.innerHTML = `${meta}<div class="text-[15px] leading-tight break-words">${data.text}</div>`;
                     
-                    display.appendChild(div);
+                    container.appendChild(div);
+                    display.appendChild(container);
                 });
                 display.scrollTop = display.scrollHeight;
             }, (err) => {
-                console.error("Firestore error:", err);
+                console.error("Erro Firestore:", err);
             });
         };
 
@@ -227,6 +271,7 @@
                     createdAt: serverTimestamp()
                 });
                 input.value = "";
+                input.focus();
             } catch (e) {
                 console.error("Erro ao enviar:", e);
             }
@@ -242,17 +287,17 @@
             if (!auth.currentUser || !userSession.isAdmin) return;
 
             if(action === 'clear') {
-                if(confirm("Deseja apagar TODO o chat?")) {
+                if(confirm("ATENÇÃO YOHAN: Deseja apagar TODO o histórico de mensagens?")) {
                     const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages'));
                     for (const d of snap.docs) {
                         await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'messages', d.id));
                     }
                 }
             } else if (action === 'alert') {
-                const msg = prompt("Digite o aviso global:");
+                const msg = prompt("Digite o aviso importante do administrador:");
                 if(msg) {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages'), {
-                        text: `📢 AVISO DO ADMIN: ${msg}`,
+                        text: `📢 AVISO OFICIAL: ${msg}`,
                         user: "SISTEMA",
                         isAdmin: true,
                         createdAt: serverTimestamp()
@@ -264,13 +309,29 @@
         };
 
         // CALL HANDLERS
-        window.openCall = () => document.getElementById('call-overlay').classList.remove('hidden');
-        window.closeCall = () => document.getElementById('call-overlay').classList.add('hidden');
+        window.openCall = () => {
+            document.getElementById('call-overlay').classList.remove('hidden');
+            let seconds = 0;
+            callInterval = setInterval(() => {
+                seconds++;
+                const min = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const sec = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('call-timer').innerText = `${min}:${sec}`;
+            }, 1000);
+        };
+
+        window.closeCall = () => {
+            document.getElementById('call-overlay').classList.add('hidden');
+            clearInterval(callInterval);
+            document.getElementById('call-timer').innerText = "00:00";
+        };
 
         // LOGOUT
         window.logout = () => {
-            localStorage.removeItem('chat_user');
-            auth.signOut().then(() => location.reload());
+            if(confirm("Deseja sair do chat?")) {
+                localStorage.removeItem('chat_user');
+                auth.signOut().then(() => location.reload());
+            }
         };
 
         // Event listeners
